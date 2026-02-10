@@ -106,9 +106,9 @@ def handle_command(msg):
         
         if cmd_type == "dispense":
             pico_led.on()
-            set_servo_angle(servo, 96)
+            set_servo_angle(servo, 90)
             sleep(3)
-            set_servo_angle(servo, 10)
+            set_servo_angle(servo, 0)
             sleep(3)
             pico_led.off()
             return Responses.ok("Dispensed")
