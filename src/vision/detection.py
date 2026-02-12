@@ -89,7 +89,6 @@ class ClusterDetection:
             # --- 3D Chamfer (centered) ---
             chamfer = chamfer_distance(
                 pts_xy - centroid_xy,
-                pts_xy - centroid_xy,
                 self.roomba_pts
             )
 
