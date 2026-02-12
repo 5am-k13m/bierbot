@@ -8,7 +8,7 @@ import os
 # -------------------- Calibration Manager --------------------
 
 class CalibrationManager:
-    def __init__(self, cam_1, cam_2, always_default=True, default_room="workroom_wide.json"):
+    def __init__(self, cam_1, cam_2, always_default=True, default_room="2-12-26_calibration.json"):
         self.cam_1 = cam_1
         self.cam_2 = cam_2
 
@@ -334,8 +334,8 @@ while True:
 
     if calibration_manager.calib_done:
         cloud1 = depth_to_point_cloud_subsample(cam_1.depth, cam_1)
-        cloud2 = depth_to_point_cloud_subsample(cam_2.depth, cam_2)
-        cloud2 = (cloud2 @ calibration_manager.calib_R.T) + calibration_manager.calib_t
+        cloud2_uncalibrated = depth_to_point_cloud_subsample(cam_2.depth, cam_2)
+        cloud2 = (cloud2_uncalibrated @ calibration_manager.calib_R.T) + calibration_manager.calib_t
         pc = np.vstack((cloud1, cloud2))
 
         if not calibration_manager.floor_done:
@@ -404,6 +404,32 @@ while True:
 
         if key == ord('s'):
             prompt_and_save_roomba(clusterer)
+
+        if key == ord('b'):
+            #Save depth image, individual point clouds
+            room_image = {
+                "cam_1": {
+                    "depth": np.asarray(cam_1.depth).tolist(),
+                    "point_cloud": np.asarray(cloud1).tolist()
+                },
+                "cam_2": {
+                    "depth": np.asarray(cam_2.depth).tolist(),
+                    "point_cloud": np.asarray(cloud2_uncalibrated).tolist()
+                }
+            }
+
+            save_path = f"example_viz/depth_pc_capture.json"
+
+            if os.path.exists(save_path):
+                with open(save_path, 'r') as f:
+                    existing = json.load(f)
+                existing.update(room_image)
+                room_image = existing
+
+            with open(save_path, 'w') as f:
+                json.dump(room_image, f, indent=4)
+
+            print(f"Snapshot saved to {save_path}")
 
     if key == 27:
         break
