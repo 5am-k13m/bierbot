@@ -21,7 +21,7 @@ class CalibrationManager:
         self.calib_t = None
 
         self.floor_threshold = 800
-        self.cluster_epsilon = 1350
+        self.cluster_epsilon = 1000
         self.cluster_min_samples = 150
 
         self.floor_done = False
@@ -288,8 +288,8 @@ def prompt_and_save_roomba(clusterer):
 
 # -------------------- Startup --------------------
 
-cam_1 = watcher.Watcher(display=False, index=0)
-cam_2 = watcher.Watcher(display=False, index=1)
+cam_1 = watcher.Watcher(display=True, index=0)
+cam_2 = watcher.Watcher(display=True, index=1)
 
 print("Giving runtime buffer...")
 time.sleep(3)
@@ -300,7 +300,6 @@ clusterer = detection.ClusterDetection(
     min_samples=calibration_manager.cluster_min_samples
 )
 roombeer = robot.Robot()
-last_frame_clusters = []
 floor_obj = None
 
 position_1 = None
@@ -357,7 +356,7 @@ while True:
         clusterer.min_samples = calibration_manager.cluster_min_samples
         clusterer.min_xy, clusterer.max_xy = floor_obj.min_xy, floor_obj.max_xy
 
-        clusters, labels = clusterer.detect_clusters(obstacle_pts[:, :2], obstacle_pts)
+        clusters, labels = clusterer.detect_clusters(obstacle_pts[:, :2])
         clusterer.update_tracks()
         cluster_img = clusterer.visualize_clusters()
 
@@ -365,16 +364,16 @@ while True:
         canvas = int(max((floor_size * 0.025)) + 20)
         canvas = max(canvas, 400)
 
-        roomba_cluster = max(clusterer.tracks.items(), key=lambda k: k[1]["wins"])
+        # roomba_cluster = max(clusterer.tracks.items(), key=lambda k: k[1]["wins"])
 
-        roombeer.position = world_to_pixel(
-                            roomba_cluster[1]["centroid"],
-                            clusterer.min_xy,
-                            0.025,
-                            canvas,
-                            400
-                            )
-        cv2.circle(cluster_img, roombeer.position.astype(int), 4, (255,255,0), 1)
+        # roombeer.position = world_to_pixel(
+        #                     roomba_cluster[1]["centroid"],
+        #                     clusterer.min_xy,
+        #                     0.025,
+        #                     canvas,
+        #                     400
+        #                     )
+        # cv2.circle(cluster_img, roombeer.position.astype(int), 4, (255,255,0), 1)
 
         if key == ord('p'):
             pre_cal_time = time.time()
@@ -405,8 +404,6 @@ while True:
 
         if key == ord('s'):
             prompt_and_save_roomba(clusterer)
-
-        last_frame_clusters = clusters
 
     if key == 27:
         break

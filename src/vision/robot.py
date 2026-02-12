@@ -1,5 +1,5 @@
 """
-Class which handles moving the robot along a given path
+Class which handles communicating with and moving the robot
 """
 
 import numpy as np

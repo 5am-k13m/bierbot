@@ -60,13 +60,8 @@ class ClusterDetection:
     # ------------------------------------------------------------
     # Clustering
     # ------------------------------------------------------------
-    def detect_clusters(self, points_xy, points_xyz):
-        """
-        points_xy  : (N, 2) projected points (used for DBSCAN)
-        points_xyz : (N, 3) depth points (used for Chamfer)
+    def detect_clusters(self, points_xy):
 
-        IMPORTANT: arrays must be index-aligned
-        """
         if len(points_xy) == 0:
             self.clusters = []
             return [], np.array([])
@@ -86,24 +81,24 @@ class ClusterDetection:
             mask = labels == lbl
 
             pts_xy = points_xy[mask]
-            pts_xyz = points_xyz[mask]
 
             centroid_xy = pts_xy.mean(axis=0)
-            centroid_xyz = pts_xyz.mean(axis=0)
 
             rect = self.minimum_bounding_rectangle(pts_xy)
 
             # --- 3D Chamfer (centered) ---
             chamfer = chamfer_distance(
-                pts_xyz - centroid_xyz,
+                pts_xy - centroid_xy,
                 self.roomba_pts
             )
 
+            hull = ConvexHull(pts_xy)
+            hull_pts = pts_xy[hull.vertices]
+
             clusters.append({
                 "points_xy": pts_xy,
-                "points_xyz": pts_xyz,
                 "centroid_xy": centroid_xy,
-                "centroid_xyz": centroid_xyz,
+                "convex_hull": hull_pts,
                 "rectangle": rect,
                 "chamfer": chamfer
             })
@@ -237,6 +232,21 @@ class ClusterDetection:
             for x, y in pts:
                 if 0 <= x < canvas and 0 <= y < canvas:
                     img[y, x] = color
+
+            # --- Draw cluster convex hull ---
+            hull = c["convex_hull"]  # (4,2) in world coords
+            hull_img = ((hull - self.min_xy) * scale).astype(int)
+
+            # Ensure shape is correct for OpenCV
+            hull_img = hull_img.reshape((-1, 1, 2))
+
+            cv2.polylines(
+                img,
+                [hull_img],
+                isClosed=True,
+                color=color,
+                thickness=2
+            )
 
             cx, cy = ((c["centroid_xy"] - self.min_xy) * scale).astype(int)
             if 0 <= cx < canvas and 0 <= cy < canvas:

@@ -41,61 +41,6 @@ class Watcher:
         if self.display:
             self.create_windows()
 
-    # -------------------------------------------------
-    # NEW METHOD 1: Project 3D → 2D pixels
-    # -------------------------------------------------
-    def _project_points(self, pts_cam):
-        """
-        pts_cam: Nx3 array in CAMERA COORDINATES
-        Returns: u,v pixel coordinates
-        """
-
-        if pts_cam is None or len(pts_cam) == 0:
-            return np.zeros((0,2), dtype=np.int32)
-
-        fx, fy = self.fx, self.fy
-        cx, cy = self.cx, self.cy
-
-        X = pts_cam[:, 0]
-        Y = pts_cam[:, 1]
-        Z = pts_cam[:, 2]
-
-        if len(Z) == 0:
-            return np.zeros((0,2), dtype=np.int32)
-
-        u = (fx * X / Z + cx).astype(np.int32)
-        v = (fy * Y / Z + cy).astype(np.int32)
-
-        return np.vstack([u, v]).T
-
-    # -------------------------------------------------
-    # NEW METHOD 2: Draw on RGB frame
-    # -------------------------------------------------
-    def overlay_points(self, frame, pts_cam, is_floor=True, point_size=2):
-        """
-        Draws 3D camera-space points onto the RGB frame.
-        
-        - Floor points = blue
-        - Obstacle points = red
-        """
-
-        if frame is None or pts_cam is None:
-            return frame
-
-        pts_2d = self._project_points(pts_cam)
-        if len(pts_2d) == 0:
-            return frame
-
-        color = (255,0,0) if is_floor else (0,0,255)  # BGR
-
-        h, w = frame.shape[:2]
-
-        for (u, v) in pts_2d:
-            if 0 <= u < w and 0 <= v < h:
-                cv2.circle(frame, (u, v), point_size, color, -1)
-
-        return frame
-
     # ------------------ Stream control ------------------
     def start_stream(self):
         if not self.stream_open:
