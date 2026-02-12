@@ -60,7 +60,7 @@ class ClusterDetection:
     # ------------------------------------------------------------
     # Clustering
     # ------------------------------------------------------------
-    def detect_clusters(self, points_xy, points_xyz):
+    def detect_clusters(self, points_xy):
         """
         points_xy  : (N, 2) projected points (used for DBSCAN)
         points_xyz : (N, 3) depth points (used for Chamfer)
@@ -86,24 +86,20 @@ class ClusterDetection:
             mask = labels == lbl
 
             pts_xy = points_xy[mask]
-            pts_xyz = points_xyz[mask]
 
             centroid_xy = pts_xy.mean(axis=0)
-            centroid_xyz = pts_xyz.mean(axis=0)
 
             rect = self.minimum_bounding_rectangle(pts_xy)
 
             # --- 3D Chamfer (centered) ---
             chamfer = chamfer_distance(
-                pts_xyz - centroid_xyz,
+                pts_xy - centroid_xy,
                 self.roomba_pts
             )
 
             clusters.append({
                 "points_xy": pts_xy,
-                "points_xyz": pts_xyz,
                 "centroid_xy": centroid_xy,
-                "centroid_xyz": centroid_xyz,
                 "rectangle": rect,
                 "chamfer": chamfer
             })

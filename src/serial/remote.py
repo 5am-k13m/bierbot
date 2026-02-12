@@ -6,7 +6,7 @@ import pygame
 import socket
 import threading
 import time
-from serial.protocol import Commands, Message
+from protocol import Commands, Message
 
 # Configuration
 SERVER_IP = "192.168.1.170"
