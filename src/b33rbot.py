@@ -21,7 +21,7 @@ class CalibrationManager:
         self.calib_t = None
 
         self.floor_threshold = 800
-        self.cluster_epsilon = 1000
+        self.cluster_epsilon = 1350
         self.cluster_min_samples = 150
 
         self.floor_done = False
