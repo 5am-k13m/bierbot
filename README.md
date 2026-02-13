@@ -19,16 +19,17 @@ We calibrate the coordinate spaces of the two camera point clouds by identifying
 
 ![Camera coordinate space alignment](src/example_viz/sequenced_calib.gif)
 
-By selecting the three calibration points to all lie on the floor of the room, we can also identify a plane within the space that corresponds to the floor. With this floor plane determined, we can easily idenify which points correspond with obstacles. We make this discrimination by checking if the orthogonal distance between a given point and the floor plane falls within a user-determined threshold.
+By selecting the three calibration points to all lie on the floor of the room, we can also identify a plane within the space that corresponds to the floor. With this floor plane determined, we can easily identify which points correspond with obstacles. We make this discrimination by checking if the orthogonal distance between a given point and the floor plane falls within a user-determined threshold.
 
 ## Obstacle Detection
 
-Idenfiying the points that are within a given threshold from the floor is our first step in identifying the navigable space in the room. In practice, the Kinect IR Sensor can be noisy, leading to inaccuracy in depth data. In order to discriminate between noise and an actual obstacle, we employ a cluster detection algorithm, namely DBSCAN. DBSCAN was selected because it is lightweight enough to run in real time and can accurately differentiable between points belonging to obstacles and noise from the Kinect sensor.
+Identfiying the points that are within a given threshold from the floor is our first step in identifying the navigable space in the room. In practice, the Kinect IR Sensor can be noisy, leading to inaccuracy in depth data. In order to discriminate between noise and an actual obstacle, we employ a cluster detection algorithm, namely DBSCAN. DBSCAN was selected because it is lightweight enough to run in real time and can accurately differentiate between points belonging to obstacles and noise from the Kinect sensor.
 
 ![Floor and cluster detection](src/example_viz/top_view_clusters.gif)
 
-DBSCAN cluster labels can change at any given frame. As such an additional persistent cluster tracking system was implemented, which maps each new frame's cluster against previously seen ones. If new frame clusters fall within the same general area as previous cluster they get mapped together. Additionally if clusters haven't been seen over a given amount of time they get pruned from the tracking dict.
-With these two techniques employed we can identify obstacles within the room, and more importantly, identify where in the room our robot can actually navigate.
+DBSCAN cluster labels can change at any given frame. As such an additional cluster tracking system was implemented. This maps each new frame clusters against previously seen ones. If new frame clusters fall within the same general area as previous cluster they get mapped together. Additionally if clusters haven't been seen over a given amount of time they get pruned from the tracking dict.
+
+With these two techniques employed we can identify obstacle and where in the room our robot can actually navigate.
 
 ## Delivery Robot and Beverage Dispenser
 
@@ -58,6 +59,6 @@ Next is further implementing the algorithm for tracking the Roomba within our ro
 
 Following this, implement a path following protocol for the Roomba to use. At the moment, A* is implemented within the vision system to find the most optimal path between two points within the room image. It uses Euclidiean distance to the goal as a heuristic. It builds the navigation space marking the convex hulls of obstacle clusters as high cost traversal. Through basic testing it seems to work well. The next step would be to break down the computed A* path into the points in which the path curves or turns, and treat them as check points.
 
-The forward facing direction of the Roomba can be calibrated after it leaves the charging dock by marking it's position, driving a short distance forward, and marking it's new position. Following that, rotating the Roomba to face the next checkpoint and drive until it's cluster centroid is within a given distance. Continue this until the destination is reached. For returning to the dock, spin the Roomba completely around and follow the path backwards.
+The forward facing direction of the Roomba can be calibrated after it leaves the charging dock by marking it's position, driving a short distance forward, and marking it's new position. Following that, rotate the Roomba to face the next checkpoint and drive until it's cluster centroid is within a given distance. Continue this until the destination is reached. For returning to the dock, spin the Roomba completely around and follow the path backwards.
 
 Other considerations with path finding include what to do if an obstace interupts the path. In this case, we would likely recalculate the A* path with the new obstacle clusters starting from the Roomba's current position.
